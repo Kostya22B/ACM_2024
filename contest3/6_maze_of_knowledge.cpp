@@ -3,32 +3,56 @@
 using namespace std;
 
 struct Door {
-    int from, to, knowledge;
+    int to;
+    int knowledgeChange;
+    Door(int _to, int _knowledgeChange) : to(_to), knowledgeChange(_knowledgeChange) {}
 };
 
-const int INF = 1e9;
+vector<vector<Door>> graph;
+vector<bool> visited;
+vector<int> knowledge;
+void dfs(int room) {
+    visited[room] = true;
+    for (const Door& door : graph[room]) {
+        int nextRoom = door.to;
+        int knowledgeChange = door.knowledgeChange;
+        if (!visited[nextRoom]) {
+            knowledge[nextRoom] = max(knowledge[nextRoom], knowledge[room] + knowledgeChange);
+            dfs(nextRoom);
+        }
+    }
+}
 
 int main() {
     int n, m;
     cin >> n >> m;
-    vector<Door> doors(m);
-    vector<int> knowledge(n + 1, -INF);
+
+    graph.resize(n + 1);
+    visited.resize(n + 1, false);
+    knowledge.resize(n + 1, INT_MIN);
     
     for (int i = 0; i < m; ++i) {
-        cin >> doors[i].from >> doors[i].to >> doors[i].knowledge;
+        int from, to, change;
+        cin >> from >> to >> change;
+        graph[from].emplace_back(to, change);
     }
+
     knowledge[1] = 0;
-    
-    for (int i = 0; i < n - 1; ++i) {
-        for (const Door& door : doors) {
-            knowledge[door.to] = max(knowledge[door.to], knowledge[door.from] + door.knowledge);
+    dfs(1);
+
+    if (visited[n]) {
+        if (knowledge[n] == INT_MIN) {
+            cout << ":(" << endl;
+        } else {
+            if (knowledge[n] < 0) {
+                cout << ":)" << endl;
+            } else {
+                cout << knowledge[n] << endl;
+            }
         }
-    }
-    
-    if (knowledge[n] > -INF) {
-        cout << knowledge[n] << endl;
     } else {
         cout << ":(" << endl;
     }
+
     return 0;
 }
